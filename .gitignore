@@ -1,0 +1,6 @@
+.idea/
+.nicegui/
+.venv/
+.venv314/
+creds.json
+games.json
