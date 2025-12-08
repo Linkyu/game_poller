@@ -283,5 +283,3 @@ ui.run(
     ssl_keyfile="D:/Users/Linkyu/Documents/ssl/server.key.pem",
     show=False
 )
-
-# TODO: add ranking page? or directly in poll?
