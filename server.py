@@ -279,7 +279,5 @@ ui.run(
     title="GAME POLLER",
     storage_secret=get_cred("run→storage_secret"),
     port=int(get_cred("run→port")),
-    ssl_certfile=get_cred("cert→ssl_certfile"),
-    ssl_keyfile=get_cred("cert→ssl_keyfile"),
     show=False
 )

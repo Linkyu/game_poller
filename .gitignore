@@ -2,5 +2,7 @@
 .nicegui/
 .venv/
 .venv314/
+.python-version
+__pycache__/
 creds.json
 games.json
