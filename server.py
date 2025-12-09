@@ -2,8 +2,7 @@ import json
 import string
 import random
 import urllib.parse
-from datetime import date, datetime, time, timedelta
-from decimal import Decimal
+import datetime
 from urllib.parse import quote
 
 from sortable_column import SortableColumn
@@ -70,9 +69,7 @@ def send_games_to_db(games):
     display_ranking.refresh()
 
 
-def get_game_ranking() -> list[
-    tuple[Decimal | bytes | date | datetime | float | int | set[str] | str | timedelta | None | time, ...] | dict[
-        str, Decimal | bytes | date | datetime | float | int | set[str] | str | timedelta | None | time]]:
+def get_game_ranking() -> list:
     game_poller_db = mysql.connector.connect(
         host=get_cred("db→host"),
         user=get_cred("db→user"),
@@ -137,63 +134,73 @@ def submit_games():
             if login_needed:
                 with ui.dialog() as _dialog, ui.card():
                     ui.label("Something went wrong with your Twitch connection.")
-                    full_url = get_twitch_auth_url()
-                    ui.button("Log in with Twitch", on_click=lambda: ui.navigate.to(full_url))
+                    auth_url = get_twitch_auth_url()
+                    ui.button("Log in with Twitch", on_click=lambda: ui.navigate.to(auth_url))
     else:
         ui.notify("No games found. This.... this shouldn't be possible. What. How did you do that.")
 
 
 @ui.page("/")
 def page():
-    url = "https://backloggery.com/api/fetch_library.php"
-    obj = {"type": "load_user_library", "username": get_cred("backloggery→user")}
-    response = requests.post(url, json=obj)
-    if response.status_code != 200:
-        ui.label("Oops. Connection to Backloggery did NOT work. Response received:")
-        ui.label(response.text)
+    if "last_backlog_fetch" in app.storage.general and (datetime.datetime.now() - app.storage.general["last_backlog_fetch"]).seconds < 60:
+        with open("games.json", encoding="utf-8") as f:
+            data = json.load(f)
     else:
-        games = [x for x in sorted(response.json(), key=lambda x: x["title"]) if x["priority"] not in [10, 60]]
+        url = "https://backloggery.com/api/fetch_library.php"
+        obj = {"type": "load_user_library", "username": get_cred("backloggery→user")}
+        response = requests.post(url, json=obj)
+        if response.status_code == 200:
+            data = response.json()
+            with open("games.json", 'w', encoding="utf-8") as f:
+                json.dump(data, f)
+                app.storage.general["last_backlog_fetch"] = datetime.datetime.now()
+        else:
+            ui.label("Oops. Connection to Backloggery did NOT work. Response received:")
+            ui.label(response.text)
+            return
 
-        # with open("games.json") as f:
-        #     games = [x for x in sorted(json.load(f), key=lambda x: x["title"]) if x["priority"] not in [10, 60]]
-        games_by_id = {}
-        for game in games:
-            games_by_id[str(game["game_inst_id"])] = game
+    games = [x for x in sorted(data, key=lambda x: x["title"]) if x["priority"] not in [10, 60]]
 
-        app.storage.client["games"] = games
 
-        with ui.row().classes("w-full justify-end gap-40"):
-            login_needed = False
+    games_by_id = {}
+    for game in games:
+        games_by_id[str(game["game_inst_id"])] = game
 
-            if 'twitch_access_token' not in app.storage.browser:
-                login_needed = True
+    app.storage.client["games"] = games
+
+    with ui.row().classes("w-full justify-end gap-40"):
+        login_needed = False
+
+        if 'twitch_access_token' not in app.storage.browser:
+            login_needed = True
+        else:
+            validation_headers = {"Authorization": f"OAuth {app.storage.browser['twitch_access_token']}"}
+            validation_response = requests.get("https://id.twitch.tv/oauth2/validate", headers=validation_headers)
+            if validation_response.status_code == 200:
+                with ui.column().classes("w-2/3 items-center"):
+                    with ui.row().classes("w-full max-w-xl justify-between"):
+                        ui.label("Which game should I play next?").classes("text-xl")
+                        ui.button("Submit ranking", on_click=submit_games).props("color=teal-600").classes("text-right")
+
+                    ui.label("Drag these around in your preferred order then click ↑ SUBMIT ↑").classes("w-full max-w-xl text-sm text-slate-500 text-right")
+
+                    with SortableColumn(on_change=on_change, group='test').classes("bg-teal-600 items-stretch p-8 max-w-xl"):
+                        for game in games:
+                            with ui.card().classes("cursor-grab"):
+                                with ui.column().classes("w-full gap-0"):
+                                    ui.label(game['title']).classes("text-lg")
+                                    with ui.label(game['notes']).classes("w-full line-clamp-1 text-xs text-slate-500 text-right"):
+                                        ui.tooltip(game['notes'])
             else:
-                validation_headers = {"Authorization": f"OAuth {app.storage.browser['twitch_access_token']}"}
-                validation_response = requests.get("https://id.twitch.tv/oauth2/validate", headers=validation_headers)
-                if validation_response.status_code == 200:
-                    with ui.column().classes("w-2/3 items-center"):
-                        with ui.row().classes("w-full max-w-xl justify-between"):
-                            ui.label("Which game should I play next?").classes("text-xl")
-                            ui.button("Submit ranking", on_click=submit_games).props("color=teal-600").classes("text-right")
+                login_needed = True
 
-                        ui.label("Drag these around in your preferred order then click ↑ SUBMIT ↑").classes("w-full max-w-xl text-sm text-slate-500 text-right")
+        if login_needed:
+            with ui.column().classes("grow items-center"):
+                auth_url = get_twitch_auth_url()
+                ui.button("Log in with Twitch to cast your votes", on_click=lambda: ui.navigate.to(auth_url)).props("color=purple-800")
 
-                        with SortableColumn(on_change=on_change, group='test').classes("bg-teal-600 items-stretch p-8 max-w-xl"):
-                            for game in games:
-                                with ui.card().classes("cursor-grab"):
-                                    with ui.column().classes("w-full gap-0"):
-                                        ui.label(game['title']).classes("text-lg")
-                                        with ui.label(game['notes']).classes("w-full line-clamp-1 text-xs text-slate-500 text-right"):
-                                            ui.tooltip(game['notes'])
-                else:
-                    login_needed = True
+        display_ranking(games_by_id)
 
-            if login_needed:
-                full_url = get_twitch_auth_url()
-                with ui.column().classes("grow items-center"):
-                    ui.button("Log in with Twitch to cast your votes", on_click=lambda: ui.navigate.to(full_url)).props("color=purple-800")
-
-            display_ranking(games_by_id)
 
 @ui.refreshable
 def display_ranking(games: dict):
@@ -230,7 +237,6 @@ def twitch_callback(state: str, code: str = "", error: str = "", error_descripti
                     app.storage.browser["twitch_access_token"] = r["access_token"]
                     app.storage.browser["twitch_refresh_token"] = r["refresh_token"]
                     app.storage.browser["twitch_expiration"] = r["expires_in"]
-                    ui.navigate.to(page)
 
                     # Retrieve user ID
                     user_headers = {
@@ -241,6 +247,7 @@ def twitch_callback(state: str, code: str = "", error: str = "", error_descripti
 
                     if user_response.status_code == 200:
                         app.storage.browser["twitch_user"] = user_response.json()["data"][0]["id"]
+                        ui.navigate.to("http://localhost:443")
                     else:
                         if user_response.status_code == 400:
                             ui.html('<style>.multi-line-notification { white-space: pre-line; }</style>', sanitize=False)
