@@ -37,7 +37,7 @@ def on_change(ni, oi):
     app.storage.client["games"].insert(ni, app.storage.client["games"].pop(oi))
 
 
-def get_cred(cred: str) -> str:
+def get_cred(cred: str):
     with open("creds.json") as f:
         keys = json.load(f)[0]
         block, item = cred.split("→")
@@ -278,8 +278,8 @@ ui.run(
     favicon="🕹",
     title="GAMES",
     storage_secret="whAt_the_fUck_ever_man_idec_anyumor3",
-    port=443,
-    ssl_certfile="D:/Users/Linkyu/Documents/ssl/server.crt.pem",
-    ssl_keyfile="D:/Users/Linkyu/Documents/ssl/server.key.pem",
+    port=int(get_cred("run→port")),
+    ssl_certfile=get_cred("cert→ssl_certfile"),
+    ssl_keyfile=get_cred("cert→ssl_keyfile"),
     show=False
 )
