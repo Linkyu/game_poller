@@ -274,10 +274,10 @@ def page():
 
 
 ui.run(
-    page,
+    root=page,
     favicon="🕹",
-    title="GAMES",
-    storage_secret="whAt_the_fUck_ever_man_idec_anyumor3",
+    title="GAME POLLER",
+    storage_secret=get_cred("run→storage_secret"),
     port=int(get_cred("run→port")),
     ssl_certfile=get_cred("cert→ssl_certfile"),
     ssl_keyfile=get_cred("cert→ssl_keyfile"),
