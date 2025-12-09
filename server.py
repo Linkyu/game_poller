@@ -143,8 +143,8 @@ def submit_games():
         ui.notify("No games found. This.... this shouldn't be possible. What. How did you do that.")
 
 
-@ui.page("/game_poller")
-def game_poller():
+@ui.page("/")
+def page():
     url = "https://backloggery.com/api/fetch_library.php"
     obj = {"type": "load_user_library", "username": get_cred("backloggery→user")}
     response = requests.post(url, json=obj)
@@ -230,7 +230,7 @@ def twitch_callback(state: str, code: str = "", error: str = "", error_descripti
                     app.storage.browser["twitch_access_token"] = r["access_token"]
                     app.storage.browser["twitch_refresh_token"] = r["refresh_token"]
                     app.storage.browser["twitch_expiration"] = r["expires_in"]
-                    ui.navigate.to(game_poller)
+                    ui.navigate.to(page)
 
                     # Retrieve user ID
                     user_headers = {
@@ -265,12 +265,6 @@ def twitch_callback(state: str, code: str = "", error: str = "", error_descripti
                         else:
                             ui.notification("how. you somehow managed to get an error code not in the doc. "
                                             "what did you do")
-
-
-@ui.page("/")
-def page():
-    ui.label("hmmmmm no i don't think so")
-    ui.navigate.to(game_poller)
 
 
 ui.run(
