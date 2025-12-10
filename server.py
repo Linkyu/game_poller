@@ -142,7 +142,8 @@ def submit_games():
 
 @ui.page("/")
 def page():
-    if "last_backlog_fetch" in app.storage.general and (datetime.datetime.now() - app.storage.general["last_backlog_fetch"]).seconds < 60:
+    if ("last_backlog_fetch" in app.storage.general
+            and (datetime.datetime.now() - datetime.datetime.fromisoformat(app.storage.general["last_backlog_fetch"])).seconds < 60):
         with open("games.json", encoding="utf-8") as f:
             data = json.load(f)
     else:
@@ -153,7 +154,7 @@ def page():
             data = response.json()
             with open("games.json", 'w', encoding="utf-8") as f:
                 json.dump(data, f)
-                app.storage.general["last_backlog_fetch"] = datetime.datetime.now()
+                app.storage.general["last_backlog_fetch"] = datetime.datetime.now().isoformat()
         else:
             ui.label("Oops. Connection to Backloggery did NOT work. Response received:")
             ui.label(response.text)
