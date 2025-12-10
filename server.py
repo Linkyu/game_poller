@@ -248,7 +248,7 @@ def twitch_callback(state: str, code: str = "", error: str = "", error_descripti
 
                     if user_response.status_code == 200:
                         app.storage.browser["twitch_user"] = user_response.json()["data"][0]["id"]
-                        ui.navigate.to("http://localhost:443")
+                        ui.navigate.to(page)
                     else:
                         if user_response.status_code == 400:
                             ui.html('<style>.multi-line-notification { white-space: pre-line; }</style>', sanitize=False)
