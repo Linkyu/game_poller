@@ -39,8 +39,11 @@ def on_change(ni, oi):
 def get_cred(cred: str):
     with open("creds.json") as f:
         keys = json.load(f)[0]
-        block, item = cred.split("→")
-        return keys[block][item] if block in keys and item in keys[block] else ""
+        if "→" in cred:
+            block, item = cred.split("→")
+            return keys[block][item] if block in keys and item in keys[block] else ""
+        else:
+            return keys[cred] if cred in keys else ""
 
 
 def send_games_to_db(games):
@@ -274,12 +277,23 @@ def twitch_callback(state: str, code: str = "", error: str = "", error_descripti
                             ui.notification("how. you somehow managed to get an error code not in the doc. "
                                             "what did you do")
 
-
-ui.run(
-    root=page,
-    favicon="🕹",
-    title="GAME POLLER",
-    storage_secret=get_cred("run→storage_secret"),
-    port=int(get_cred("run→port")),
-    show=False
-)
+if get_cred("mode") == "DEBUG":
+    ui.run(
+        root=page,
+        favicon="🕹",
+        title="GAME POLLER",
+        storage_secret=get_cred("run→storage_secret"),
+        port=int(get_cred("run→port")),
+        ssl_certfile=get_cred("cert→ssl_certfile"),
+        ssl_keyfile=get_cred("cert→ssl_keyfile"),
+        show=False
+    )
+else:
+    ui.run(
+        root=page,
+        favicon="🕹",
+        title="GAME POLLER",
+        storage_secret=get_cred("run→storage_secret"),
+        port=int(get_cred("run→port")),
+        show=False
+    )
