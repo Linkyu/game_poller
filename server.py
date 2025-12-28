@@ -6,7 +6,7 @@ import datetime
 from urllib.parse import quote
 
 from sortable_column import SortableColumn
-from nicegui import ui, app
+from nicegui import ui, app, html
 import requests
 import mysql.connector
 
@@ -183,7 +183,7 @@ def page():
             if validation_response.status_code == 200:
                 with ui.column().classes("w-2/3 items-center"):
                     with ui.row().classes("w-full max-w-xl justify-between"):
-                        ui.label("Which game should I play next?").classes("text-xl")
+                        ui.label("Which game should I play next?").classes("text-2xl font-bold")
                         ui.button("Submit ranking", on_click=submit_games).props("color=teal-600").classes("text-right")
 
                     ui.label("Drag these around in your preferred order then click ↑ SUBMIT ↑").classes("w-full max-w-xl text-sm text-slate-500 text-right")
@@ -205,16 +205,38 @@ def page():
 
         display_ranking(games_by_id)
 
+    with ui.column().classes("w-full"):
+        ui.label("© 2025 Linkyu").classes("w-full text-center")
+
 
 @ui.refreshable
 def display_ranking(games: dict):
     with ui.column().classes(""):
-        ui.label("Current ranking").classes("text-lg")
+        ui.label("Current ranking").classes("w-full text-3xl font-bold text-center")
 
         ranking = get_game_ranking()
         with ui.list():
-            for game in ranking:
-                ui.label(games[game[0]]["title"])
+            for i, game in enumerate(ranking):
+                match i:
+                    case 0:
+                        ui.label(games[game[0]]["title"]).classes("text-2xl text-shadow-xs/60 font-bold text-yellow-400")
+                    case 1:
+                        ui.label(games[game[0]]["title"]).classes("text-xl text-shadow-xs/30  font-bold text-slate-500")
+                    case 2:
+                        ui.label(games[game[0]]["title"]).classes("text-lg text-shadow-xs  font-bold text-amber-800")
+                    case _:
+                        ui.label(games[game[0]]["title"])
+
+        html.hr()
+
+        more_games_label = ui.label(
+            "Is there a specific game that you want to see me play?\n"
+            "Then let me know, and I'll consider adding it to the backlog!\n"
+        ).style('white-space: pre-wrap;').classes("w-full text-center")
+
+        with ui.teleport(f"#{more_games_label.html_id}"):
+            ui.link("You can check here all the games I've finished already.", f"https://backloggery.com/{get_cred('backloggery→user')}/library?status=%5B30%2C40%5D&page=1")
+
 
 
 @ui.page("/twitch_callback/")
