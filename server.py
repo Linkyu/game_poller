@@ -88,6 +88,31 @@ def get_game_ranking() -> list:
     return cursor.fetchall()
 
 
+def get_user_ranking(user_id: int) -> list:
+    game_poller_db = mysql.connector.connect(
+        host=get_cred("db→host"),
+        user=get_cred("db→user"),
+        password=get_cred("db→password"),
+        database=get_cred("db→database"),
+    )
+
+    cursor = game_poller_db.cursor()
+
+    cursor.execute(f"SELECT * FROM game_poller.votes where twitch_user = {user_id} order by score DESC")
+
+    return cursor.fetchall()
+
+
+def game_is_sortable(game_id: int) -> bool:
+    games = app.storage.client["games"]
+    for game in games:
+        if int(game["game_inst_id"]) == game_id:
+            return True
+    else:
+        return False
+
+
+
 def get_twitch_auth_url() -> str:
     app.storage.browser["twitch_state"] = ''.join(
         random.SystemRandom().choice(string.ascii_lowercase + string.digits) for _ in range(20))
@@ -189,7 +214,24 @@ def page():
                     ui.label("Drag these around in your preferred order then click ↑ SUBMIT ↑").classes("w-full max-w-xl text-sm text-slate-500 text-right")
 
                     with SortableColumn(on_change=on_change, group='test').classes("bg-teal-600 items-stretch p-8 max-w-xl"):
+                        # Sort the list already if the user has sorted it before
+                        user_ranking = get_user_ranking(int(app.storage.browser["twitch_user"]))
+                        sorted_games = []
+                        for ranked_game in user_ranking:
+                            game_id = int(ranked_game[1])
+                            if game_is_sortable(game_id):
+                                sorted_games.append(games_by_id[str(game_id)])
+
+                        # Add the games never sorted
                         for game in games:
+                            if game not in sorted_games:
+                                sorted_games.append(game)
+
+                        print(games)
+                        print(sorted_games)
+
+                        #display the games
+                        for game in sorted_games:
                             with ui.card().classes("cursor-grab"):
                                 with ui.column().classes("w-full gap-0"):
                                     ui.label(game['title']).classes("text-lg")
