@@ -250,7 +250,7 @@ def page():
 
 @ui.refreshable
 def display_ranking(games: dict):
-    with ui.column().classes(""):
+    with ui.column().classes("min-w-[30em]"):
         ui.label("Current ranking").classes("w-full text-3xl font-bold text-center")
 
         ranking = get_game_ranking()
