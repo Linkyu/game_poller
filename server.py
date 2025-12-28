@@ -197,7 +197,7 @@ def page():
 
     app.storage.client["games"] = games
 
-    with ui.row().classes("w-full justify-end gap-40"):
+    with ui.row().classes("w-full justify-between flex-nowrap"):
         login_needed = False
 
         if 'twitch_access_token' not in app.storage.browser:
@@ -206,7 +206,7 @@ def page():
             validation_headers = {"Authorization": f"OAuth {app.storage.browser['twitch_access_token']}"}
             validation_response = requests.get("https://id.twitch.tv/oauth2/validate", headers=validation_headers)
             if validation_response.status_code == 200:
-                with ui.column().classes("w-2/3 items-center"):
+                with ui.column().classes("w-full items-center"):
                     with ui.row().classes("w-full max-w-xl justify-between"):
                         ui.label("Which game should I play next?").classes("text-2xl font-bold")
                         ui.button("Submit ranking", on_click=submit_games).props("color=teal-600").classes("text-right")
@@ -226,9 +226,6 @@ def page():
                         for game in games:
                             if game not in sorted_games:
                                 sorted_games.append(game)
-
-                        print(games)
-                        print(sorted_games)
 
                         #display the games
                         for game in sorted_games:
