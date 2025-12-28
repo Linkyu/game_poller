@@ -261,13 +261,17 @@ def display_ranking(games: dict):
             for i, game in enumerate(ranking):
                 match i:
                     case 0:
-                        ui.label(games[game[0]]["title"]).classes("text-2xl text-shadow-xs/60 font-bold text-yellow-400")
+                        with ui.label(games[game[0]]["title"]).classes("text-2xl text-shadow-xs/60 font-bold text-yellow-400"):
+                            ui.tooltip(games[game[0]]['notes'])
                     case 1:
-                        ui.label(games[game[0]]["title"]).classes("text-xl text-shadow-xs/30  font-bold text-slate-500")
+                        with ui.label(games[game[0]]["title"]).classes("text-xl text-shadow-xs/30  font-bold text-slate-500"):
+                            ui.tooltip(games[game[0]]['notes'])
                     case 2:
-                        ui.label(games[game[0]]["title"]).classes("text-lg text-shadow-xs  font-bold text-amber-800")
+                        with ui.label(games[game[0]]["title"]).classes("text-lg text-shadow-xs  font-bold text-amber-800"):
+                            ui.tooltip(games[game[0]]['notes'])
                     case _:
-                        ui.label(games[game[0]]["title"])
+                        with ui.label(games[game[0]]["title"]):
+                            ui.tooltip(games[game[0]]['notes'])
 
         html.hr()
 
