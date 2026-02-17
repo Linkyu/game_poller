@@ -254,8 +254,12 @@ def display_ranking(games: dict):
         ui.label("Current ranking").classes("w-full text-3xl font-bold text-center")
 
         ranking = get_game_ranking()
+        filtered_ranking = []
+        for _, game in enumerate(ranking):
+            if game[0] in games:
+                filtered_ranking.append(game)
         with ui.list():
-            for i, game in enumerate(ranking):
+            for i, game in enumerate(filtered_ranking):
                 if game[0] in games:
                     match i:
                         case 0:
