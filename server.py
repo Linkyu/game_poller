@@ -256,19 +256,20 @@ def display_ranking(games: dict):
         ranking = get_game_ranking()
         with ui.list():
             for i, game in enumerate(ranking):
-                match i:
-                    case 0:
-                        with ui.label(games[game[0]]["title"]).classes("text-2xl text-shadow-xs/60 font-bold text-yellow-400"):
-                            ui.tooltip(games[game[0]]['notes'])
-                    case 1:
-                        with ui.label(games[game[0]]["title"]).classes("text-xl text-shadow-xs/30  font-bold text-slate-500"):
-                            ui.tooltip(games[game[0]]['notes'])
-                    case 2:
-                        with ui.label(games[game[0]]["title"]).classes("text-lg text-shadow-xs  font-bold text-amber-800"):
-                            ui.tooltip(games[game[0]]['notes'])
-                    case _:
-                        with ui.label(games[game[0]]["title"]):
-                            ui.tooltip(games[game[0]]['notes'])
+                if game[0] in games:
+                    match i:
+                        case 0:
+                            with ui.label(games[game[0]]["title"]).classes("text-2xl text-shadow-xs/60 font-bold text-yellow-400"):
+                                ui.tooltip(games[game[0]]['notes'])
+                        case 1:
+                            with ui.label(games[game[0]]["title"]).classes("text-xl text-shadow-xs/30  font-bold text-slate-500"):
+                                ui.tooltip(games[game[0]]['notes'])
+                        case 2:
+                            with ui.label(games[game[0]]["title"]).classes("text-lg text-shadow-xs  font-bold text-amber-800"):
+                                ui.tooltip(games[game[0]]['notes'])
+                        case _:
+                            with ui.label(games[game[0]]["title"]):
+                                ui.tooltip(games[game[0]]['notes'])
 
         html.hr()
 
